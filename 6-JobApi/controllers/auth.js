@@ -13,19 +13,26 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  
+  // any one is empty
   const { email, password } = req.body;
   if (!email || !password) {
     throw new BadRequestError('email or password are not be empty');
   }
 
+  // compare user
   const user = await User.findOne({ email });
   if (!user) {
-    throw new UnauthenticatedError('email or password is incorrect');
+    throw new UnauthenticatedError('email is incorrect');
+  }
+
+  // compare password
+  const isPasswordCorrect = await user.comparePassword(password);
+  if (!isPasswordCorrect) {
+    throw new UnauthenticatedError('password is incorrect');
   }
 
   const token = user.createJWT();
-  res.status(StatusCodes.OK).json({user:{ name: user.name}, token});
+  res.status(StatusCodes.OK).json({ user: { name: user.name }, token });
 };
 
 module.exports = {
