@@ -3,7 +3,8 @@ const { BadRequestError, NotFoundError } = require('../errors');
 const Job = require('../models/Job');
 
 const getAllJobs = async (req, res) => {
-  res.send('get All Job');
+  const jobs = await Job.find({ createdBy: req.user.userID }).sort('createdAt');
+  res.status(StatusCodes.OK).json({ jobs, count: jobs.length });
 };
 
 const getJob = async (req, res) => {
