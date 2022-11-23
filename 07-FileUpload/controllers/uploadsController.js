@@ -1,15 +1,17 @@
 const { StatusCodes } = require('http-status-codes');
 const path = require('path');
 const CustomError = require('../errors');
+const cloudinary = require('cloudinary').v2;
+const fs = require('fs');
 
-const UploadProductImage = async (req, res) => {
+const UploadProductImageLocal = async (req, res) => {
   //check file exists or not
   if (!req.files) {
     throw new CustomError.BadRequestError('No file Uploaded');
   }
   let productImage = req.files.image;
   // check the format of images
-  if (!productImage.mimetype.startswith('images')) {
+  if (!productImage.mimetype.startsWith('image')) {
     throw new CustomError.BadRequestError('Please Upload Image');
   }
 
@@ -28,6 +30,18 @@ const UploadProductImage = async (req, res) => {
   return res
     .status(StatusCodes.OK)
     .json({ image: { src: `/uploads/${productImage.name}` } });
+};
+
+const UploadProductImage = async (req, res) => {
+  const result = await cloudinary.uploader.upload(
+    req.files.image.tempFilePath,
+    {
+      use_filename: true,
+      folder: 'fileUploads',
+    }
+  );
+  fs.unlinkSync(req.files.image.tempFilePath);
+  return res.status(StatusCodes.OK).json({ image: { src: result.secure_url } });
 };
 
 module.exports = {
